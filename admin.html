@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #6366f1;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .active-nav {
+            background-color: rgba(79, 70, 229, 0.1);
+            border-left: 4px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .user-status-active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .user-status-inactive {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        .status-active {
+            background-color: var(--success);
+        }
+        
+        .status-inactive {
+            background-color: var(--danger);
+        }
+        
+        .glow-primary {
+            box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
+        }
+        
+        .nav-link:hover {
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar bg-white w-64 min-h-screen border-r border-gray-200 py-6 hidden md:block">
+            <div class="px-4 mb-8">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-indigo-100 p-2 rounded-lg">
+                        <i class="fas fa-lock text-indigo-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">Admin Portal</h1>
+                        <p class="text-xs text-gray-500">System Administrator</p>
+                    </div>
+                </div>
+            </div>
+            
+            <nav>
+                <ul class="space-y-1 px-4">
+                    <li>
+                        <a href="#" data-view="dashboard" class="nav-link active-nav flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-view="users" class="nav-link flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-users mr-3"></i>
+                            User Management
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-view="settings" class="nav-link flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-cog mr-3"></i>
+                            Settings
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-view="analysis" class="nav-link flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-chart-pie mr-3"></i>
+                            Analysis
+                        </a>
+                    </li>
+                    <li class="mt-8 pt-4 border-t border-gray-200">
+                        <a href="#" class="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-50">
+                            <i class="fas fa-sign-out-alt mr-3"></i>
+                            Logout
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <button class="md:hidden mr-4 text-gray-600">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h2 class="text-lg font-semibold text-gray-800" id="currentPage">Dashboard</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-bell text-xl"></i>
+                            </button>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                <span class="text-indigo-800 font-semibold">A</span>
+                            </div>
+                            <span class="ml-2 text-sm font-medium hidden md:inline">Admin User</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-1 p-4 md:p-8">
+                <!-- Dashboard View -->
+                <div id="dashboardView" class="view">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">System Overview</h2>
+                        <p class="text-gray-600">Welcome back, Admin. Here's what's happening with your system today.</p>
+                    </div>
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="dashboard-card bg-white rounded-xl shadow p-6 border-l-4 border-indigo-500">
+                            <div class="flex items-center">
+                                <div class="bg-indigo-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-users text-indigo-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Total Users</p>
+                                    <h3 class="text-2xl font-bold">1,842</h3>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-500">+12.5% from last month</p>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-male text-green-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Male Users</p>
+                                    <h3 class="text-2xl font-bold">1,184</h3>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-500">64.2% of total users</p>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card bg-white rounded-xl shadow p-6 border-l-4 border-pink-500">
+                            <div class="flex items-center">
+                                <div class="bg-pink-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-female text-pink-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Female Users</p>
+                                    <h3 class="text-2xl font-bold">658</h3>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-500">35.8% of total users</p>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card bg-white rounded-xl shadow p-6 border-l-4 border-purple-500">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-graduation-cap text-purple-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Avg. Education</p>
+                                    <h3 class="text-2xl font-bold">Bachelor's</h3>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-500">Education distribution</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts and Activity -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="lg:col-span-2 bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">User Distribution by Role</h3>
+                            <div class="h-80">
+                                <canvas id="roleChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Recent Activity</h3>
+                                <button class="text-indigo-600 text-sm font-medium">View All</button>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <div class="bg-indigo-100 p-2 rounded-full mr-3">
+                                        <i class="fas fa-user-plus text-indigo-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">New user added</p>
+                                        <p class="text-sm text-gray-500">John Doe added as Office HR</p>
+                                        <p class="text-xs text-gray-400">10 minutes ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start">
+                                    <div class="bg-green-100 p-2 rounded-full mr-3">
+                                        <i class="fas fa-sync-alt text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">System updated</p>
+                                        <p class="text-sm text-gray-500">Security patches applied</p>
+                                        <p class="text-xs text-gray-400">2 hours ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start">
+                                    <div class="bg-yellow-100 p-2 rounded-full mr-3">
+                                        <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">Security alert</p>
+                                        <p class="text-sm text-gray-500">Unusual login detected</p>
+                                        <p class="text-xs text-gray-400">5 hours ago</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start">
+                                    <div class="bg-purple-100 p-2 rounded-full mr-3">
+                                        <i class="fas fa-file-export text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">Report generated</p>
+                                        <p class="text-sm text-gray-500">Q3 system report exported</p>
+                                        <p class="text-xs text-gray-400">Yesterday</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Status -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">System Status</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="border border-green-200 bg-green-50 rounded-lg p-4">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <p class="font-medium">Database</p>
+                                        <p class="text-sm text-gray-600">MySQL v8.0</p>
+                                    </div>
+                                    <div class="text-green-600">
+                                        <i class="fas fa-check-circle text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="w-full bg-green-200 rounded-full h-2">
+                                        <div class="bg-green-600 h-2 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">85% capacity</p>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-blue-200 bg-blue-50 rounded-lg p-4">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <p class="font-medium">Server</p>
+                                        <p class="text-sm text-gray-600">AWS EC2</p>
+                                    </div>
+                                    <div class="text-blue-600">
+                                        <i class="fas fa-check-circle text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="w-full bg-blue-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">65% CPU usage</p>
+                                </div>
+                            </div>
+                            
+                            <div class="border border-green-200 bg-green-50 rounded-lg p-4">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <p class="font-medium">Uptime</p>
+                                        <p class="text-sm text-gray-600">Last 30 days</p>
+                                    </div>
+                                    <div class="text-green-600">
+                                        <i class="fas fa-check-circle text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="w-full bg-green-200 rounded-full h-2">
+                                        <div class="bg-green-600 h-2 rounded-full" style="width: 99%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">99.97% uptime</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- User Management View -->
+                <div id="usersView" class="view hidden">
+                    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">User Management</h2>
+                            <p class="text-gray-600">Manage all system users and their permissions</p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
+                                <i class="fas fa-plus mr-2"></i>Add New User
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                                                    <span class="text-indigo-800 font-semibold">JD</span>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">John Doe</div>
+                                                    <div class="text-sm text-gray-500">Office HR</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                Office HR
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">john.doe@example.com</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="user-status-active px-2 py-1 text-xs rounded-full">
+                                                <span class="status-indicator status-active"></span>Active
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Today, 09:42 AM</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <button class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                                    <span class="text-green-800 font-semibold">SM</span>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">Sarah Miller</div>
+                                                    <div class="text-sm text-gray-500">Woreda HR</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                Woreda HR
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">sarah.m@example.com</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="user-status-active px-2 py-1 text-xs rounded-full">
+                                                <span class="status-indicator status-active"></span>Active
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Today, 08:15 AM</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <button class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                                    <span class="text-purple-800 font-semibold">RK</span>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">Robert King</div>
+                                                    <div class="text-sm text-gray-500">Zone HR</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                                Zone HR
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">robert.k@example.com</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="user-status-inactive px-2 py-1 text-xs rounded-full">
+                                                <span class="status-indicator status-inactive"></span>Inactive
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yesterday, 03:22 PM</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <button class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mr-3">
+                                                    <span class="text-pink-800 font-semibold">EJ</span>
+                                                </div>
+                                                <div>
+                                                    <div class="font-medium text-gray-900">Emily Johnson</div>
+                                                    <div class="text-sm text-gray-500">System Admin</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-pink-100 text-pink-800">
+                                                System Admin
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">emily.j@example.com</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="user-status-active px-2 py-1 text-xs rounded-full">
+                                                <span class="status-indicator status-active"></span>Active
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Today, 10:30 AM</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <button class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between items-center">
+                        <div class="text-gray-600 text-sm">
+                            Showing 1 to 4 of 84 users
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                                Previous
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings View -->
+                <div id="settingsView" class="view hidden">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">System Settings</h2>
+                        <p class="text-gray-600">Configure platform settings and preferences</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-6">Platform Information</h3>
+                            
+                            <form class="space-y-6">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Platform Name</label>
+                                    <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="HR Management System" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Organization</label>
+                                    <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" value="Buno Bedele Zone Administration" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">System Logo</label>
+                                    <div class="flex items-center">
+                                        <div class="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 flex items-center justify-center mr-4">
+                                            <i class="fas fa-image text-gray-400"></i>
+                                        </div>
+                                        <div>
+                                            <button class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg mr-2">
+                                                <i class="fas fa-upload mr-2"></i>Upload
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-800">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">System Timezone</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                                        <option value="">Select Timezone</option>
+                                        <option value="east-africa" selected>East Africa Time (GMT+3)</option>
+                                        <option value="utc">UTC</option>
+                                        <option value="europe">Central European Time</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="flex justify-end">
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                                        Update Platform
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-6">Admin Preferences</h3>
+                            
+                            <form class="space-y-6">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Email Notifications</label>
+                                    <div class="mt-2">
+                                        <label class="inline-flex items-center">
+                                            <input type="checkbox" class="rounded text-indigo-600" checked>
+                                            <span class="ml-2">Receive system notifications</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Dashboard View</label>
+                                    <div class="mt-2 space-y-2">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="dashboard-view" class="text-indigo-600" checked>
+                                            <span class="ml-2">Default View</span>
+                                        </label>
+                                        <label class="inline-flex items-center ml-6">
+                                            <input type="radio" name="dashboard-view" class="text-indigo-600">
+                                            <span class="ml-2">Compact View</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Items per page</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
+                                        <option value="10">10 items</option>
+                                        <option value="25" selected>25 items</option>
+                                        <option value="50">50 items</option>
+                                        <option value="100">100 items</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Theme Preference</label>
+                                    <div class="flex space-x-4 mt-2">
+                                        <div class="bg-indigo-600 w-8 h-8 rounded-full cursor-pointer glow-primary"></div>
+                                        <div class="bg-gray-800 w-8 h-8 rounded-full cursor-pointer"></div>
+                                        <div class="bg-green-600 w-8 h-8 rounded-full cursor-pointer"></div>
+                                        <div class="bg-blue-600 w-8 h-8 rounded-full cursor-pointer"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end">
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                                        Save Preferences
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis View -->
+                <div id="analysisView" class="view hidden">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">System Analysis</h2>
+                        <p class="text-gray-600">Smart visualizations and data insights</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">User Distribution by Role</h3>
+                                <div>
+                                    <button class="text-gray-500 hover:text-indigo-600 mr-2">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="text-gray-500 hover:text-indigo-600">
+                                        <i class="fas fa-expand"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="h-80">
+                                <canvas id="roleAnalysisChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold">Activity Over Time</h3>
+                                <div>
+                                    <button class="text-gray-500 hover:text-indigo-600 mr-2">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="text-gray-500 hover:text-indigo-600">
+                                        <i class="fas fa-expand"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="h-80">
+                                <canvas id="activityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow p-6 mb-8">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Usage Statistics by Department</h3>
+                            <div class="flex space-x-2">
+                                <select class="px-3 py-1 border border-gray-300 rounded-lg">
+                                    <option>Last 7 days</option>
+                                    <option selected>Last 30 days</option>
+                                    <option>Last 90 days</option>
+                                </select>
+                                <button class="text-gray-500 hover:text-indigo-600">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="h-96">
+                            <canvas id="departmentChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Export Reports</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="border border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center">
+                                <div class="bg-red-100 p-4 rounded-full mb-3">
+                                    <i class="fas fa-file-pdf text-red-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-medium mb-2">PDF Export</h4>
+                                <p class="text-sm text-gray-600 text-center mb-4">Export current view as PDF document</p>
+                                <button class="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+                                    Export PDF
+                                </button>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center">
+                                <div class="bg-blue-100 p-4 rounded-full mb-3">
+                                    <i class="fas fa-file-word text-blue-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-medium mb-2">DOC Export</h4>
+                                <p class="text-sm text-gray-600 text-center mb-4">Export data as editable Word document</p>
+                                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                                    Export DOC
+                                </button>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4 flex flex-col items-center justify-center">
+                                <div class="bg-green-100 p-4 rounded-full mb-3">
+                                    <i class="fas fa-file-csv text-green-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-medium mb-2">CSV Export</h4>
+                                <p class="text-sm text-gray-600 text-center mb-4">Export raw data as CSV spreadsheet</p>
+                                <button class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                                    Export CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Initialize charts
+        function initCharts() {
+            // Role Chart (Dashboard)
+            const roleCtx = document.getElementById('roleChart').getContext('2d');
+            const roleChart = new Chart(roleCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Office HR', 'Woreda HR', 'Zone HR', 'System Admin'],
+                    datasets: [{
+                        data: [680, 420, 210, 32],
+                        backgroundColor: ['#4f46e5', '#6366f1', '#818cf8', '#c7d2fe'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Role Analysis Chart (Analysis)
+            const roleAnalysisCtx = document.getElementById('roleAnalysisChart').getContext('2d');
+            const roleAnalysisChart = new Chart(roleAnalysisCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Office HR', 'Woreda HR', 'Zone HR', 'System Admin'],
+                    datasets: [{
+                        data: [680, 420, 210, 32],
+                        backgroundColor: ['#4f46e5', '#6366f1', '#818cf8', '#c7d2fe'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Activity Chart
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            const activityChart = new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Active Users',
+                        data: [1200, 1900, 1500, 1800, 2200, 800, 500],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Department Chart
+            const departmentCtx = document.getElementById('departmentChart').getContext('2d');
+            const departmentChart = new Chart(departmentCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Education', 'Health', 'Agriculture', 'Transport', 'Finance', 'Administration'],
+                    datasets: [
+                        {
+                            label: 'Office HR',
+                            data: [320, 180, 120, 90, 75, 150],
+                            backgroundColor: '#4f46e5'
+                        },
+                        {
+                            label: 'Woreda HR',
+                            data: [280, 210, 95, 110, 60, 120],
+                            backgroundColor: '#6366f1'
+                        },
+                        {
+                            label: 'Zone HR',
+                            data: [80, 60, 45, 30, 40, 90],
+                            backgroundColor: '#818cf8'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: false
+                        },
+                        y: {
+                            stacked: false,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Navigation functionality
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const views = document.querySelectorAll('.view');
+            const currentPage = document.getElementById('currentPage');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    navLinks.forEach(nav => nav.classList.remove('active-nav'));
+                    // Add active class to clicked link
+                    link.classList.add('active-nav');
+                    
+                    // Hide all views
+                    views.forEach(view => view.classList.add('hidden'));
+                    
+                    // Show selected view
+                    const viewId = link.getAttribute('data-view') + 'View';
+                    document.getElementById(viewId).classList.remove('hidden');
+                    
+                    // Update page title
+                    currentPage.textContent = link.textContent.trim();
+                });
+            });
+        }
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            setupNavigation();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buno Bedele HR Statistics System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1d4ed8',
+                        secondary: '#0e7490',
+                        accent: '#0d9488',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+        
+        .hero-pattern {
+            background: radial-gradient(circle, rgba(13,148,136,0.1) 0%, rgba(255,255,255,0) 70%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .woreda-map {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="200" height="150"><path d="M30,30 L170,30 L170,120 L30,120 Z" fill="none" stroke="%230e7490" stroke-width="2" stroke-dasharray="5,5"/><circle cx="50" cy="50" r="8" fill="%231d4ed8" /><circle cx="100" cy="70" r="8" fill="%231d4ed8" /><circle cx="150" cy="90" r="8" fill="%231d4ed8" /><circle cx="80" cy="100" r="8" fill="%231d4ed8" /><circle cx="120" cy="40" r="8" fill="%231d4ed8" /></svg>');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .login-form {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(14, 116, 144, 0.2);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        
+        /* Added styles for the main application */
+        .app-container {
+            display: none;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .view {
+            display: none;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        .nav-link.active {
+            background-color: #e0f2fe;
+            color: #1d4ed8;
+            border-left: 4px solid #1d4ed8;
+        }
+        
+        .role-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        /* Role-specific colors */
+        .office-role { background-color: #1d4ed8; color: white; }
+        .woreda-role { background-color: #0e7490; color: white; }
+        .zonal-role { background-color: #0d9488; color: white; }
+        .admin-role { background-color: #8b5cf6; color: white; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-primary p-2 rounded-lg">
+                        <i class="fas fa-users text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">HR Stat System</h1>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-primary font-semibold">Home</a>
+                    <a href="#about" class="text-gray-600 hover:text-primary">About</a>
+                    <a href="#features" class="text-gray-600 hover:text-primary">Features</a>
+                    <a href="#woredas" class="text-gray-600 hover:text-primary">Woredas</a>
+                    <a href="#loginFormSection" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700">Login</a>
+                </div>
+                
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-600">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-4 py-6 bg-white">
+            <a href="#" class="block py-2 text-primary font-semibold">Home</a>
+            <a href="#about" class="block py-2 text-gray-600 hover:text-primary">About</a>
+            <a href="#features" class="block py-2 text-gray-600 hover:text-primary">Features</a>
+            <a href="#woredas" class="block py-2 text-gray-600 hover:text-primary">Woredas</a>
+            <a href="#loginFormSection" class="block mt-4 bg-primary text-white px-4 py-2 rounded-lg text-center">Login</a>
+        </div>
+    </nav>
+
+    <!-- Login Screen (visible initially) -->
+    <div id="loginScreen">
+        <!-- Hero Section -->
+        <section class="hero-pattern py-16 md:py-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 mb-12 md:mb-0">
+                        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
+                            Welcome to <span class="text-primary">Buno Bedele</span> HR Statistics System
+                        </h1>
+                        <p class="text-lg text-gray-700 mb-8">
+                            Collect, manage, and view HR data across woredas and offices in the Buno Bedele Zone.
+                        </p>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                            <a href="#loginFormSection" class="bg-primary hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300 text-center">
+                                Login to Dashboard
+                            </a>
+                            <a href="#features" class="border-2 border-primary text-primary hover:bg-blue-50 font-bold py-3 px-8 rounded-lg transition duration-300 text-center">
+                                Explore Features
+                            </a>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 flex justify-center">
+                        <div class="relative">
+                            <div class="woreda-map w-64 h-64 md:w-80 md:h-80 rounded-xl bg-white shadow-xl p-4 animate-float"></div>
+                            <div class="absolute -bottom-4 -right-4 bg-white p-4 rounded-lg shadow-lg">
+                                <div class="flex items-center">
+                                    <div class="bg-green-100 p-3 rounded-full mr-3">
+                                        <i class="fas fa-chart-line text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Data Collection</p>
+                                        <p class="font-bold">7 Woredas</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="absolute -top-4 -left-4 bg-white p-4 rounded-lg shadow-lg">
+                                <div class="flex items-center">
+                                    <div class="bg-blue-100 p-3 rounded-full mr-3">
+                                        <i class="fas fa-users text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">Total Employees</p>
+                                        <p class="font-bold">2,500+</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">About This Platform</h2>
+                    <div class="w-24 h-1 bg-primary mx-auto"></div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">Built for Efficient HR Management</h3>
+                        <p class="text-gray-700 mb-6">
+                            The Buno Bedele HR Statistics System is designed specifically for the unique needs of Aanaa Gachii and surrounding woredas. Our platform helps streamline HR operations across multiple government offices.
+                        </p>
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span class="text-gray-700">Track HR records by office and gender with precision</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span class="text-gray-700">Visualize workforce statistics in one centralized location</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span class="text-gray-700">Generate comprehensive reports for decision making</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span class="text-gray-700">Facilitate communication between different administrative levels</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-md">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow-sm card-hover">
+                                <div class="feature-icon bg-blue-100 text-blue-600 mx-auto">
+                                    <i class="fas fa-building text-2xl"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold text-center mb-2">Office Management</h4>
+                                <p class="text-gray-600 text-center text-sm">Manage HR data for all government offices</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-sm card-hover">
+                                <div class="feature-icon bg-green-100 text-green-600 mx-auto">
+                                    <i class="fas fa-chart-pie text-2xl"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold text-center mb-2">Data Analytics</h4>
+                                <p class="text-gray-600 text-center text-sm">Advanced analytics for workforce insights</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-sm card-hover">
+                                <div class="feature-icon bg-purple-100 text-purple-600 mx-auto">
+                                    <i class="fas fa-file-pdf text-2xl"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold text-center mb-2">Reporting</h4>
+                                <p class="text-gray-600 text-center text-sm">Generate detailed reports in multiple formats</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-sm card-hover">
+                                <div class="feature-icon bg-orange-100 text-orange-600 mx-auto">
+                                    <i class="fas fa-comments text-2xl"></i>
+                                </div>
+                                <h4 class="text-lg font-semibold text-center mb-2">Communication</h4>
+                                <p class="text-gray-600 text-center text-sm">Seamless communication between HR levels</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Features</h2>
+                    <p class="text-gray-700 max-w-3xl mx-auto">Our platform provides specialized and tools for each role in the HR hierarchy</p>
+                    <div class="w-24 h-1 bg-primary mx-auto mt-4"></div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Office HR Card -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                        <div class="bg-primary text-white py-4 px-6">
+                            <h3 class="text-xl font-bold">Office HR</h3>
+                        </div>
+                        <div class="p-6">
+                            <ul class="space-y-3 mb-6">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Employee data management</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Department-specific reporting</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Submit to Woreda HR</span>
+                                </li>
+                            </ul>
+                            <div class="bg-gray-100 rounded-lg p-4 mb-4">
+                                <h4 class="font-semibold text-gray-800 mb-2">Offices</h4>
+                                <div class="text-sm text-gray-600">
+                                    Education, Health, Finance, Transport, Agriculture, Police, Justice
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                    <!-- Woreda HR Card -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                        <div class="bg-secondary text-white py-4 px-6">
+                            <h3 class="text-xl font-bold">Woreda HR</h3>
+                        </div>
+                        <div class="p-6">
+                            <ul class="space-y-3 mb-6">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Aggregate office data</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Woreda-level analytics</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Submit to Zonal HR</span>
+                                </li>
+                            </ul>
+                            <div class="bg-gray-100 rounded-lg p-4 mb-4">
+                                <h4 class="font-semibold text-gray-800 mb-2">Woredas</h4>
+                                <div class="text-sm text-gray-600">
+                                    Bedele Town, Boracha, Chora, Chewaka, Dabo Hana, Dedesa, Dega, Gechi, Meko
+                                </div>
+                            </div>
+                        
+                        </div>
+                    </div>
+                    
+                    <!-- Zone HR Card -->
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden card-hover">
+                        <div class="bg-accent text-white py-4 px-6">
+                            <h3 class="text-xl font-bold">Zone HR</h3>
+                        </div>
+                        <div class="p-6">
+                            <ul class="space-y-3 mb-6">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Regional oversight</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Cross-woreda analytics</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span>Strategic reporting</span>
+                                </li>
+                            </ul>
+                            <div class="bg-gray-100 rounded-lg p-4 mb-4">
+                                <h4 class="font-semibold text-gray-800 mb-2">Zones</h4>
+                                <div class="text-sm text-gray-600">
+                                    Bunno Bedele Zone
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                   
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Woredas Section -->
+        <section id="woredas" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Woredas in Bunno Bedele Zone</h2>
+                    <p class="text-gray-700 max-w-3xl mx-auto">Our platform serves all woredas across the Bunno Bedele Zone</p>
+                    <div class="w-24 h-1 bg-primary mx-auto mt-4"></div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-primary text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-city"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Bedele Town</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Administrative center with multiple government offices</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>800+ employees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-secondary text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-tractor"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Boracha</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Agricultural woreda with focus on rural development</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>450+ employees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-accent text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-tree"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Chora</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Forestry and natural resource management focus</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>380+ employees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-primary text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-water"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Chewaka</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Water resource and irrigation management</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>320+ employees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-secondary text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-mountain"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Dabo Hana</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Mountainous region with unique administrative needs</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>290+ employees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-accent text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-road"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Dedesa (Didessa)</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Transportation and infrastructure development</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>410+ employees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-primary text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Dega</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Agricultural research and highland farming</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>350+ employees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-secondary text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-school"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Gechi</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Education and youth development focus</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>420+ employees</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 shadow-md card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-accent text-white p-3 rounded-lg mr-4">
+                                <i class="fas fa-clinic-medical"></i>
+                            </div>
+                            <h3 class="text-xl font-bold">Meko</h3>
+                        </div>
+                        <p class="text-gray-700 mb-4">Healthcare and medical services administration</p>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>370+ employees</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Form Section -->
+        <section id="loginFormSection" class="py-16 bg-gradient-to-br from-blue-50 to-cyan-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <div class="md:flex">
+                        <div class="md:w-1/2 bg-primary p-10 flex items-center">
+                            <div>
+                                <h2 class="text-3xl font-bold text-white mb-4">HR System Login</h2>
+                                <p class="text-blue-100 mb-6">Access your specialized dashboard based on your role</p>
+                                <div class="flex space-x-4">
+                                    <div class="bg-blue-600 p-4 rounded-lg">
+                                        <i class="fas fa-user-shield text-white text-2xl"></i>
+                                    </div>
+                                    <div class="bg-blue-600 p-4 rounded-lg">
+                                        <i class="fas fa-chart-bar text-white text-2xl"></i>
+                                    </div>
+                                    <div class="bg-blue-600 p-4 rounded-lg">
+                                        <i class="fas fa-file-excel text-white text-2xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="md:w-1/2 p-10 login-form">
+                            <div class="text-center mb-8">
+                                <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-users text-white text-4xl"></i>
+                                </div>
+                                <h1 class="text-3xl font-bold text-gray-800">HR Data System</h1>
+                                <p class="text-gray-600 mt-2">Employee Data Collection & Reporting</p>
+                            </div>
+                            
+                            <form id="loginForm" class="space-y-6">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Select Your Role</label>
+                                    <select id="roleSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">-- Select Role --</option>
+                                        <option value="office">Office HR</option>
+                                        <option value="woreda">Woreda HR</option>
+                                        <option value="zonal">Zonal HR</option>
+                                        <option value="admin">System Admin</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="locationField" class="hidden">
+                                    <label class="block text-gray-700 mb-2">Select Location</label>
+                                    <select id="locationSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">-- Select Location --</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="credentialsField" class="hidden space-y-4">
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Username</label>
+                                        <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your username">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-gray-700 mb-2">Password</label>
+                                        <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter your password">
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" id="loginButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                                    Login to Dashboard
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <div class="flex items-center mb-6">
+                        <div class="bg-primary p-2 rounded-lg mr-3">
+                            <i class="fas fa-users text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">HR Stat System</h3>
+                    </div>
+                    <p class="text-gray-400 mb-6">
+                        Comprehensive HR management solution for Bunno Bedele Zone government offices.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-6">Quick Links</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-white">About</a></li>
+                        <li><a href="#features" class="text-gray-400 hover:text-white">Features</a></li>
+                        <li><a href="#woredas" class="text-gray-400 hover:text-white">Woredas</a></li>
+                        <li><a href="#loginFormSection" class="text-gray-400 hover:text-white">Login</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-6">Woredas</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Bedele Town</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Boracha</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Chora</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Chewaka</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Dabo Hana</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Dedesa</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Dega</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Gechi</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Meko</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-6">Contact Us</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-gray-400"></i>
+                            <span class="text-gray-400">Bunno Bedele Zonal Administration, Oromia, Ethiopia</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone-alt mt-1 mr-3 text-gray-400"></i>
+                            <span class="text-gray-400">+251 123 456 789</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-gray-400"></i>
+                            <span class="text-gray-400">info@bunno-hr.gov.et</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-gray-400 text-center md:text-left mb-4 md:mb-0">
+                        © 2025 Buno Bedele HR System. All Rights Reserved.
+                    </p>
+                    <div class="flex space-x-6">
+                        <a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a>
+                        <a href="#" class="text-gray-400 hover:text-white">Terms of Service</a>
+                        <a href="#" class="text-gray-400 hover:text-white">Contact Us</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }
+            });
+        });
+
+        // Locations data
+        const locations = {
+            office: ['Administrative','Education','Health','Agriculture','Transport','Finance','Police','Justice','Town','Woreda-level HR','Public Service'],
+            woreda: ['Bedele Town','Boracha','Chora','Chewaka','Dabo Hana','Dedesa (Didessa)','Dega','Gechi','Meko'],
+            zonal: ['Zone Bunno Bedele'],
+            admin: ['System Administration']
+        };
+        
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const roleSelect = document.getElementById('roleSelect');
+        const locationField = document.getElementById('locationField');
+        const locationSelect = document.getElementById('locationSelect');
+        const credentialsField = document.getElementById('credentialsField');
+        const loginForm = document.getElementById('loginForm');
+        const loginButton = document.getElementById('loginButton');
+        
+        // Handle role change in login form
+        function handleRoleChange() {
+            const role = roleSelect.value;
+            locationField.classList.toggle('hidden', !role);
+            credentialsField.classList.toggle('hidden', !role);
+            
+            if (role) {
+                // Clear and populate location select
+                locationSelect.innerHTML = '<option value="">-- Select Location --</option>';
+                locations[role].forEach(loc => {
+                    const option = document.createElement('option');
+                    option.value = loc;
+                    option.textContent = loc;
+                    locationSelect.appendChild(option);
+                });
+            }
+        }
+        
+        // Handle login
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const role = roleSelect.value;
+            const location = locationSelect.value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!role || !location) {
+                alert('Please select both role and location');
+                return;
+            }
+            
+            if (!username || !password) {
+                alert('Please enter both username and password');
+                return;
+            }
+            
+            // Change button to loading state
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Logging in...';
+            loginButton.disabled = true;
+            
+            // Simulate login process
+            setTimeout(() => {
+                // Redirect based on role
+                switch(role) {
+                    case 'office':
+                        window.location.href = 'officeHr.html';
+                        break;
+                    case 'woreda':
+                        window.location.href = 'woreda.html';
+                        break;
+                    case 'zonal':
+                        window.location.href = 'zone.html';
+                        break;
+                    case 'admin':
+                        window.location.href = 'admin.html';
+                        break;
+                    default:
+                        alert('Invalid role selected');
+                        loginButton.innerHTML = 'Login to Dashboard';
+                        loginButton.disabled = false;
+                }
+            }, 1500);
+        }
+        
+        // Initialize event listeners
+        roleSelect.addEventListener('change', handleRoleChange);
+        loginForm.addEventListener('submit', handleLogin);
+        
+        // Simulate login for demo purposes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if were coming from a logout
+            const urlParams = new URLSearchParams(window.location.search);
+            const logout = urlParams.get('logout');
+            
+            if (logout) {
+                alert('You have been successfully logged out!');
+            }
+        });
+    </script>
+</body>
+</html>

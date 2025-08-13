@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office HR Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .print-view {
+            display: none;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-view {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Main Application -->
+    <div id="app">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 p-2 rounded-lg">
+                        <i class="fas fa-users text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">Office HR Dashboard</h1>
+                        <p class="text-sm text-gray-600">Employee Data Collection & Reporting</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="printBtn" class="flex items-center space-x-1 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-print"></i>
+                        <span>Print Report</span>
+                    </button>
+                    <button id="exportBtn" class="flex items-center space-x-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-file-export"></i>
+                        <span>Export Data</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex">
+            <!-- Sidebar -->
+            <aside class="sidebar bg-gray-800 text-white w-64 min-h-screen py-6 hidden md:block">
+                <nav>
+                    <ul class="space-y-1 px-4">
+                        <li>
+                            <a href="#" data-view="dashboard" class="nav-link active">
+                                <i class="fas fa-chart-bar mr-3"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="employees" class="nav-link">
+                                <i class="fas fa-users mr-3"></i>
+                                Employee Data
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="form" class="nav-link">
+                                <i class="fas fa-plus-circle mr-3"></i>
+                                Add Employee
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="reports" class="nav-link">
+                                <i class="fas fa-file-alt mr-3"></i>
+                                Reports
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" data-view="settings" class="nav-link">
+                                <i class="fas fa-cog mr-3"></i>
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Mobile Navigation -->
+            <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
+                <div class="flex justify-around py-3">
+                    <a href="#" data-view="dashboard" class="mobile-nav-link active">
+                        <i class="fas fa-chart-bar block text-center"></i>
+                        <span class="text-xs mt-1">Dashboard</span>
+                    </a>
+                    <a href="#" data-view="employees" class="mobile-nav-link">
+                        <i class="fas fa-users block text-center"></i>
+                        <span class="text-xs mt-1">Employees</span>
+                    </a>
+                    <a href="#" data-view="form" class="mobile-nav-link">
+                        <i class="fas fa-plus-circle block text-center"></i>
+                        <span class="text-xs mt-1">Add</span>
+                    </a>
+                    <a href="#" data-view="reports" class="mobile-nav-link">
+                        <i class="fas fa-file-alt block text-center"></i>
+                        <span class="text-xs mt-1">Reports</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-8">
+                <!-- Dashboard View -->
+                <div id="dashboardView" class="view">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
+                        <p class="text-gray-600">Welcome back! Here's your data summary</p>
+                    </div>
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="dashboard-card bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Total Employees</p>
+                                    <h3 class="text-2xl font-bold" id="totalEmployees">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-male text-green-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Male Employees</p>
+                                    <h3 class="text-2xl font-bold" id="maleEmployees">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card bg-white rounded-xl shadow p-6 border-l-4 border-pink-500">
+                            <div class="flex items-center">
+                                <div class="bg-pink-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-female text-pink-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Female Employees</p>
+                                    <h3 class="text-2xl font-bold" id="femaleEmployees">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-card bg-white rounded-xl shadow p-6 border-l-4 border-purple-500">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-graduation-cap text-purple-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500 text-sm">Avg. Education</p>
+                                    <h3 class="text-2xl font-bold" id="avgEducation">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Gender Distribution</h3>
+                            <div class="h-64">
+                                <canvas id="genderChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6">
+                            <h3 class="text-lg font-semibold mb-4">Education Levels</h3>
+                            <div class="h-64">
+                                <canvas id="educationChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="bg-green-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-user-plus text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">New employee added</p>
+                                    <p class="text-sm text-gray-500">John Doe added to Transport Department</p>
+                                    <p class="text-xs text-gray-400">2 hours ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-file-export text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Report generated</p>
+                                    <p class="text-sm text-gray-500">HR report for Q3 2023</p>
+                                    <p class="text-xs text-gray-400">Yesterday</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Employee Form View -->
+                <div id="formView" class="view hidden">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Add New Employee</h2>
+                        <p class="text-gray-600">Enter employee details below</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <form id="employeeForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Full Name</label>
+                                    <input type="text" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="John Doe" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Gender</label>
+                                    <select name="gender" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Education Level</label>
+                                    <select name="education" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                        <option value="">Select Education</option>
+                                        <option value="High School">High School</option>
+                                        <option value="Diploma">Diploma</option>
+                                        <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                        <option value="Master's Degree">Master's Degree</option>
+                                        <option value="PhD">PhD</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Position</label>
+                                    <input type="text" name="position" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Software Engineer" required>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Department</label>
+                                    <select name="department" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                        <option value="">Select Department</option>
+                                        <option value="IT">Information Technology</option>
+                                        <option value="HR">Human Resources</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Marketing">Marketing</option>
+                                        <option value="Operations">Operations</option>
+                                        <option value="Transport">Transport</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 mb-2">Date of Hire</label>
+                                    <input type="date" name="hireDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-2">Office</label>
+                                <input type="text" id="officeField" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100" value="Administrative" readonly>
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                                    Add Employee
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Employees View -->
+                <div id="employeesView" class="view hidden">
+                    <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">Employee Records</h2>
+                            <p class="text-gray-600">All employee data in the system</p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <div class="flex space-x-3">
+                                <select id="filterDepartment" class="px-4 py-2 border border-gray-300 rounded-lg">
+                                    <option value="">All Departments</option>
+                                    <option value="IT">IT</option>
+                                    <option value="HR">HR</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Transport">Transport</option>
+                                </select>
+                                <button id="addEmployeeBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                    <i class="fas fa-plus mr-2"></i>Add New
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Education</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employeeTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Employee data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between items-center">
+                        <div class="text-gray-600 text-sm">
+                            Showing <span id="showingStart">1</span> to <span id="showingEnd">10</span> of <span id="totalRecords">0</span> records
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="prevPage" class="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 disabled:opacity-50">
+                                Previous
+                            </button>
+                            <button id="nextPage" class="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 disabled:opacity-50">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reports View -->
+                <div id="reportsView" class="view hidden">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">HR Reports</h2>
+                        <p class="text-gray-600">Generate and download reports</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow p-6 border border-blue-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-semibold">Department Summary</h3>
+                                    <p class="text-sm text-gray-500">Overview by department</p>
+                                </div>
+                                <div class="bg-blue-100 p-2 rounded-lg">
+                                    <i class="fas fa-building text-blue-600"></i>
+                                </div>
+                            </div>
+                            <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 report-btn" data-type="department">
+                                Generate Report
+                            </button>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6 border border-green-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-semibold">Gender Distribution</h3>
+                                    <p class="text-sm text-gray-500">Male vs Female breakdown</p>
+                                </div>
+                                <div class="bg-green-100 p-2 rounded-lg">
+                                    <i class="fas fa-venus-mars text-green-600"></i>
+                                </div>
+                            </div>
+                            <button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 report-btn" data-type="gender">
+                                Generate Report
+                            </button>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow p-6 border border-purple-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-semibold">Education Level</h3>
+                                    <p class="text-sm text-gray-500">Education statistics</p>
+                                </div>
+                                <div class="bg-purple-100 p-2 rounded-lg">
+                                    <i class="fas fa-graduation-cap text-purple-600"></i>
+                                </div>
+                            </div>
+                            <button class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 report-btn" data-type="education">
+                                Generate Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="text-lg font-semibold mb-4">Report Preview</h3>
+                        <div id="reportPreview" class="p-4 border border-gray-200 rounded-lg min-h-[300px]">
+                            <p class="text-gray-500 text-center py-12">Generate a report to see preview</p>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-end space-x-3">
+                            <button id="printPreviewBtn" class="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                                <i class="fas fa-print mr-2"></i>Print
+                            </button>
+                            <button id="exportPdfBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                            </button>
+                            <button id="exportWordBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                <i class="fas fa-file-word mr-2"></i>Export Word
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Print View (Hidden until printed) -->
+    <div id="printView" class="print-view p-8 hidden">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold">HR Employee Report</h1>
+            <p class="text-gray-600">Generated on: <span id="reportDate"></span></p>
+        </div>
+        
+        <div id="printContent">
+            <p class="text-center py-12">No report generated</p>
+        </div>
+        
+        <div class="mt-12 border-t pt-4">
+            <div class="flex justify-between">
+                <div>
+                    <p class="font-semibold">Prepared by:</p>
+                    <p class="mt-2">________________________</p>
+                </div>
+                <div>
+                    <p class="font-semibold">Approved by:</p>
+                    <p class="mt-2">________________________</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for demonstration
+        const sampleEmployees = [
+            {id: 1, name: "John Doe", gender: "Male", education: "Bachelor's Degree", department: "IT", position: "Software Engineer", office: "Administrative", hireDate: "2022-01-15"},
+            {id: 2, name: "Jane Smith", gender: "Female", education: "Master's Degree", department: "HR", position: "HR Manager", office: "Administrative", hireDate: "2021-05-23"},
+            {id: 3, name: "Robert Johnson", gender: "Male", education: "Diploma", department: "Transport", position: "Driver", office: "Administrative", hireDate: "2023-02-10"},
+            {id: 4, name: "Emily Davis", gender: "Female", education: "Bachelor's Degree", department: "Finance", position: "Accountant", office: "Administrative", hireDate: "2020-11-30"},
+            {id: 5, name: "Michael Brown", gender: "Male", education: "High School", department: "Operations", position: "Operations Manager", office: "Administrative", hireDate: "2019-08-17"},
+            {id: 6, name: "Sarah Wilson", gender: "Female", education: "PhD", department: "Marketing", position: "Marketing Director", office: "Administrative", hireDate: "2022-07-05"},
+            {id: 7, name: "David Miller", gender: "Male", education: "Bachelor's Degree", department: "IT", position: "System Administrator", office: "Administrative", hireDate: "2023-03-22"},
+            {id: 8, name: "Lisa Anderson", gender: "Female", education: "Master's Degree", department: "Finance", position: "Financial Analyst", office: "Administrative", hireDate: "2021-09-14"},
+            {id: 9, name: "James Taylor", gender: "Male", education: "Diploma", department: "Transport", position: "Logistics Coordinator", office: "Administrative", hireDate: "2020-04-08"},
+            {id: 10, name: "Karen Thomas", gender: "Female", education: "Bachelor's Degree", department: "HR", position: "Recruiter", office: "Administrative", hireDate: "2022-12-01"},
+        ];
+        
+        // Initialize employees from localStorage or use sample data
+        let employees = JSON.parse(localStorage.getItem('employees')) || sampleEmployees;
+        
+        // Current user data
+        const currentUser = {
+            role: 'office',
+            location: 'Administrative'
+        };
+        
+        // DOM Elements
+        const app = document.getElementById('app');
+        const currentRoleDisplay = document.getElementById('currentRoleDisplay');
+        const officeField = document.getElementById('officeField');
+        const employeeForm = document.getElementById('employeeForm');
+        const formView = document.getElementById('formView');
+        const employeesView = document.getElementById('employeesView');
+        const dashboardView = document.getElementById('dashboardView');
+        const reportsView = document.getElementById('reportsView');
+        const employeeTableBody = document.getElementById('employeeTableBody');
+        const filterDepartment = document.getElementById('filterDepartment');
+        const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+        const printBtn = document.getElementById('printBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const reportPreview = document.getElementById('reportPreview');
+        const printView = document.getElementById('printView');
+        const printContent = document.getElementById('printContent');
+        const reportDate = document.getElementById('reportDate');
+        const printPreviewBtn = document.getElementById('printPreviewBtn');
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
+        const exportWordBtn = document.getElementById('exportWordBtn');
+        
+        // Chart variables
+        let genderChart, educationChart;
+        
+        // Initialize application
+        function init() {
+            // Set office field
+            officeField.value = currentUser.location;
+            
+            // Event listeners
+            employeeForm.addEventListener('submit', handleEmployeeSubmit);
+            addEmployeeBtn.addEventListener('click', () => showView('form'));
+            printBtn.addEventListener('click', handlePrint);
+            exportBtn.addEventListener('click', handleExport);
+            filterDepartment.addEventListener('change', renderEmployeeTable);
+            printPreviewBtn.addEventListener('click', showPrintPreview);
+            exportPdfBtn.addEventListener('click', () => handleExport('pdf'));
+            exportWordBtn.addEventListener('click', () => handleExport('word'));
+            
+            // Navigation links
+            document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const view = link.getAttribute('data-view');
+                    showView(view);
+                });
+            });
+            
+            // Report buttons
+            document.querySelectorAll('.report-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const reportType = btn.getAttribute('data-type');
+                    generateReport(reportType);
+                });
+            });
+            
+            // Initialize dashboard
+            updateDashboard();
+            renderEmployeeTable();
+            showView('dashboard');
+        }
+        
+        // Show specific view
+        function showView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.add('hidden');
+            });
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected view
+            document.getElementById(`${viewName}View`).classList.remove('hidden');
+            
+            // Set active nav link
+            document.querySelectorAll(`[data-view="${viewName}"]`).forEach(link => {
+                link.classList.add('active');
+            });
+            
+            // Additional setup for specific views
+            if (viewName === 'dashboard') {
+                updateDashboard();
+            } else if (viewName === 'employees') {
+                renderEmployeeTable();
+            }
+        }
+        
+        // Handle employee form submission
+        function handleEmployeeSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(employeeForm);
+            const employee = {
+                id: Date.now(),
+                name: formData.get('name'),
+                gender: formData.get('gender'),
+                education: formData.get('education'),
+                department: formData.get('department'),
+                position: formData.get('position'),
+                office: currentUser.location,
+                hireDate: formData.get('hireDate') || new Date().toISOString().split('T')[0]
+            };
+            
+            // Add to employees array
+            employees.push(employee);
+            
+            // Save to localStorage
+            localStorage.setItem('employees', JSON.stringify(employees));
+            
+            // Reset form
+            employeeForm.reset();
+            
+            // Show success message
+            alert('Employee added successfully!');
+            
+            // Show employees view
+            showView('employees');
+        }
+        
+        // Update dashboard statistics and charts
+        function updateDashboard() {
+            // Update stats
+            document.getElementById('totalEmployees').textContent = employees.length;
+            
+            const maleCount = employees.filter(e => e.gender === 'Male').length;
+            const femaleCount = employees.filter(e => e.gender === 'Female').length;
+            
+            document.getElementById('maleEmployees').textContent = maleCount;
+            document.getElementById('femaleEmployees').textContent = femaleCount;
+            
+            // Calculate average education level (simplified)
+            const educationValues = {
+                "High School": 1,
+                "Diploma": 2,
+                "Bachelor's Degree": 3,
+                "Master's Degree": 4,
+                "PhD": 5
+            };
+            
+            let totalEdu = 0;
+            employees.forEach(e => {
+                if (educationValues[e.education]) {
+                    totalEdu += educationValues[e.education];
+                }
+            });
+            
+            const avgEdu = employees.length > 0 ? (totalEdu / employees.length).toFixed(1) : 0;
+            document.getElementById('avgEducation').textContent = avgEdu;
+            
+            // Create or update charts
+            updateCharts();
+        }
+        
+        // Update charts
+        function updateCharts() {
+            // Gender chart
+            const genderCtx = document.getElementById('genderChart').getContext('2d');
+            
+            // Destroy previous chart if exists
+            if (genderChart) {
+                genderChart.destroy();
+            }
+            
+            const maleCount = employees.filter(e => e.gender === 'Male').length;
+            const femaleCount = employees.filter(e => e.gender === 'Female').length;
+            
+            genderChart = new Chart(genderCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Male', 'Female'],
+                    datasets: [{
+                        data: [maleCount, femaleCount],
+                        backgroundColor: ['#3B82F6', '#EC4899'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Education chart
+            const educationCtx = document.getElementById('educationChart').getContext('2d');
+            
+            // Destroy previous chart if exists
+            if (educationChart) {
+                educationChart.destroy();
+            }
+            
+            // Count education levels
+            const educationLevels = ["High School", "Diploma", "Bachelor's Degree", "Master's Degree", "PhD"];
+            const educationCounts = educationLevels.map(level => 
+                employees.filter(e => e.education === level).length
+            );
+            
+            educationChart = new Chart(educationCtx, {
+                type: 'bar',
+                data: {
+                    labels: educationLevels,
+                    datasets: [{
+                        label: 'Employees',
+                        data: educationCounts,
+                        backgroundColor: '#8B5CF6',
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Render employee table
+        function renderEmployeeTable() {
+            const departmentFilter = filterDepartment.value;
+            
+            // Filter employees
+            let filteredEmployees = [...employees];
+            if (departmentFilter) {
+                filteredEmployees = filteredEmployees.filter(e => e.department === departmentFilter);
+            }
+            
+            // Clear table
+            employeeTableBody.innerHTML = '';
+            
+            // Populate table
+            filteredEmployees.forEach(employee => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">${employee.name}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-gray-700">${employee.position}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            ${employee.department}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-700">${employee.education}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${employee.gender === 'Male' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800'}">
+                            ${employee.gender}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-700">${employee.office}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-btn" data-id="${employee.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-red-600 hover:text-red-900 delete-btn" data-id="${employee.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                employeeTableBody.appendChild(row);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', handleEditEmployee);
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', handleDeleteEmployee);
+            });
+            
+            // Update showing records
+            document.getElementById('showingStart').textContent = 1;
+            document.getElementById('showingEnd').textContent = filteredEmployees.length;
+            document.getElementById('totalRecords').textContent = filteredEmployees.length;
+        }
+        
+        // Handle edit employee
+        function handleEditEmployee(e) {
+            const id = parseInt(e.target.closest('button').getAttribute('data-id'));
+            const employee = employees.find(emp => emp.id === id);
+            
+            if (employee) {
+                // Populate form
+                document.querySelector('input[name="name"]').value = employee.name;
+                document.querySelector('select[name="gender"]').value = employee.gender;
+                document.querySelector('select[name="education"]').value = employee.education;
+                document.querySelector('input[name="position"]').value = employee.position;
+                document.querySelector('select[name="department"]').value = employee.department;
+                document.querySelector('input[name="hireDate"]').value = employee.hireDate;
+                
+                // Show form view
+                showView('form');
+            }
+        }
+        
+        // Handle delete employee
+        function handleDeleteEmployee(e) {
+            if (confirm('Are you sure you want to delete this employee?')) {
+                const id = parseInt(e.target.closest('button').getAttribute('data-id'));
+                employees = employees.filter(emp => emp.id !== id);
+                localStorage.setItem('employees', JSON.stringify(employees));
+                renderEmployeeTable();
+                updateDashboard();
+            }
+        }
+        
+        // Generate report
+        function generateReport(type) {
+            let reportHTML = '';
+            
+            if (type === 'department') {
+                // Department summary report
+                reportHTML = `
+                    <div class="report-header mb-6">
+                        <h2 class="text-xl font-bold text-center">Department Summary Report</h2>
+                        <p class="text-center text-gray-600">${currentUser.location} - ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    
+                    <table class="min-w-full border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-300 px-4 py-2">Department</th>
+                                <th class="border border-gray-300 px-4 py-2">Male</th>
+                                <th class="border border-gray-300 px-4 py-2">Female</th>
+                                <th class="border border-gray-300 px-4 py-2">Total</th>
+                                <th class="border border-gray-300 px-4 py-2">Education Breakdown</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                // Get unique departments
+                const departments = [...new Set(employees.map(e => e.department))];
+                
+                departments.forEach(dept => {
+                    const deptEmployees = employees.filter(e => e.department === dept);
+                    const maleCount = deptEmployees.filter(e => e.gender === 'Male').length;
+                    const femaleCount = deptEmployees.filter(e => e.gender === 'Female').length;
+                    
+                    // Count education levels
+                    const educationCounts = {
+                        "High School": 0,
+                        "Diploma": 0,
+                        "Bachelor's Degree": 0,
+                        "Master's Degree": 0,
+                        "PhD": 0
+                    };
+                    
+                    deptEmployees.forEach(e => {
+                        if (educationCounts.hasOwnProperty(e.education)) {
+                            educationCounts[e.education]++;
+                        }
+                    });
+                    
+                    const educationHTML = Object.entries(educationCounts)
+                        .map(([edu, count]) => `${edu}: ${count}`)
+                        .join('<br>');
+                    
+                    reportHTML += `
+                        <tr>
+                            <td class="border border-gray-300 px-4 py-2 font-medium">${dept}</td>
+                            <td class="border border-gray-300 px-4 py-2">${maleCount}</td>
+                            <td class="border border-gray-300 px-4 py-2">${femaleCount}</td>
+                            <td class="border border-gray-300 px-4 py-2 font-semibold">${deptEmployees.length}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-sm">${educationHTML}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHTML += `
+                        </tbody>
+                    </table>
+                `;
+                
+            } else if (type === 'gender') {
+                // Gender distribution report
+                const maleCount = employees.filter(e => e.gender === 'Male').length;
+                const femaleCount = employees.filter(e => e.gender === 'Female').length;
+                const total = employees.length;
+                
+                reportHTML = `
+                    <div class="report-header mb-6">
+                        <h2 class="text-xl font-bold text-center">Gender Distribution Report</h2>
+                        <p class="text-center text-gray-600">${currentUser.location} - ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div class="flex justify-center mb-6">
+                        <div class="w-64 h-64">
+                            <canvas id="reportGenderChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <table class="min-w-full border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-300 px-4 py-2">Gender</th>
+                                <th class="border border-gray-300 px-4 py-2">Count</th>
+                                <th class="border border-gray-300 px-4 py-2">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-gray-300 px-4 py-2 font-medium">Male</td>
+                                <td class="border border-gray-300 px-4 py-2">${maleCount}</td>
+                                <td class="border border-gray-300 px-4 py-2">${total > 0 ? ((maleCount/total)*100).toFixed(1) : 0}%</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-300 px-4 py-2 font-medium">Female</td>
+                                <td class="border border-gray-300 px-4 py-2">${femaleCount}</td>
+                                <td class="border border-gray-300 px-4 py-2">${total > 0 ? ((femaleCount/total)*100).toFixed(1) : 0}%</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="border border-gray-300 px-4 py-2 font-bold">Total</td>
+                                <td class="border border-gray-300 px-4 py-2 font-bold">${total}</td>
+                                <td class="border border-gray-300 px-4 py-2 font-bold">100%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                
+                // Render chart
+                setTimeout(() => {
+                    const ctx = document.getElementById('reportGenderChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Male', 'Female'],
+                            datasets: [{
+                                data: [maleCount, femaleCount],
+                                backgroundColor: ['#3B82F6', '#EC4899'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }, 100);
+                
+            } else if (type === 'education') {
+                // Education level report
+                reportHTML = `
+                    <div class="report-header mb-6">
+                        <h2 class="text-xl font-bold text-center">Education Level Report</h2>
+                        <p class="text-center text-gray-600">${currentUser.location} - ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    
+                    <table class="min-w-full border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-300 px-4 py-2">Education Level</th>
+                                <th class="border border-gray-300 px-4 py-2">Count</th>
+                                <th class="border border-gray-300 px-4 py-2">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                // Count education levels
+                const educationLevels = ["High School", "Diploma", "Bachelor's Degree", "Master's Degree", "PhD"];
+                const educationCounts = {};
+                let total = 0;
+                
+                educationLevels.forEach(level => {
+                    const count = employees.filter(e => e.education === level).length;
+                    educationCounts[level] = count;
+                    total += count;
+                });
+                
+                educationLevels.forEach(level => {
+                    const count = educationCounts[level];
+                    const percentage = total > 0 ? ((count/total)*100).toFixed(1) : 0;
+                    
+                    reportHTML += `
+                        <tr>
+                            <td class="border border-gray-300 px-4 py-2">${level}</td>
+                            <td class="border border-gray-300 px-4 py-2">${count}</td>
+                            <td class="border border-gray-300 px-4 py-2">${percentage}%</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHTML += `
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-50">
+                                <td class="border border-gray-300 px-4 py-2 font-bold">Total</td>
+                                <td class="border border-gray-300 px-4 py-2 font-bold">${total}</td>
+                                <td class="border border-gray-300 px-4 py-2 font-bold">100%</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                `;
+            }
+            
+            reportPreview.innerHTML = reportHTML;
+        }
+        
+        // Show print preview
+        function showPrintPreview() {
+            // Set report date
+            reportDate.textContent = new Date().toLocaleDateString();
+            
+            // Copy content to print view
+            printContent.innerHTML = reportPreview.innerHTML;
+            
+            // Show print dialog
+            window.print();
+        }
+        
+        // Handle print
+        function handlePrint() {
+            // Set report date
+            reportDate.textContent = new Date().toLocaleDateString();
+            
+            // Generate a generic report for printing
+            printContent.innerHTML = `
+                <div class="report-header mb-6">
+                    <h2 class="text-xl font-bold text-center">${currentUser.location} HR Report</h2>
+                    <p class="text-center text-gray-600">Generated on: ${new Date().toLocaleDateString()}</p>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2">Summary</h3>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div class="bg-gray-100 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-600">Total Employees</p>
+                            <p class="text-2xl font-bold">${employees.length}</p>
+                        </div>
+                        <div class="bg-gray-100 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-600">Male Employees</p>
+                            <p class="text-2xl font-bold">${employees.filter(e => e.gender === 'Male').length}</p>
+                        </div>
+                        <div class="bg-gray-100 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-600">Female Employees</p>
+                            <p class="text-2xl font-bold">${employees.filter(e => e.gender === 'Female').length}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2">Department Breakdown</h3>
+                    <table class="min-w-full border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-300 px-4 py-2">Department</th>
+                                <th class="border border-gray-300 px-4 py-2">Employees</th>
+                                <th class="border border-gray-300 px-4 py-2">Male</th>
+                                <th class="border border-gray-300 px-4 py-2">Female</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${[...new Set(employees.map(e => e.department))].map(dept => {
+                                const deptEmployees = employees.filter(e => e.department === dept);
+                                const maleCount = deptEmployees.filter(e => e.gender === 'Male').length;
+                                const femaleCount = deptEmployees.filter(e => e.gender === 'Female').length;
+                                
+                                return `
+                                    <tr>
+                                        <td class="border border-gray-300 px-4 py-2">${dept}</td>
+                                        <td class="border border-gray-300 px-4 py-2">${deptEmployees.length}</td>
+                                        <td class="border border-gray-300 px-4 py-2">${maleCount}</td>
+                                        <td class="border border-gray-300 px-4 py-2">${femaleCount}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // Show print dialog
+            window.print();
+        }
+        
+        // Handle export
+        function handleExport(type) {
+            if (type === 'pdf') {
+                alert('PDF export would be implemented with jsPDF in a real application');
+            } else if (type === 'word') {
+                alert('Word export would be implemented with html-docx-js in a real application');
+            } else {
+                // Export data as CSV
+                let csvContent = "data:text/csv;charset=utf-8,";
+                
+                // Add header
+                csvContent += "Name,Gender,Education,Department,Position,Office,Hire Date\n";
+                
+                // Add data
+                employees.forEach(employee => {
+                    csvContent += `"${employee.name}",${employee.gender},${employee.education},${employee.department},${employee.position},${employee.office},${employee.hireDate}\n`;
+                });
+                
+                // Create download link
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "employees_data.csv");
+                document.body.appendChild(link);
+                
+                // Trigger download
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
