@@ -1,5 +1,5 @@
 # 💫 About Me:
-About Me<br><br>Hi, I’m Surafel Laye Betru — a passionate Web Developer and Computer Science graduate from Hawassa University 🇪🇹. I enjoy building modern, responsive, and efficient web applications, exploring new technologies, and solving real-world problems through code.<br><br>💻 Tech Stack:<br><br>Frontend: HTML, CSS, JavaScript, React.js, Tailwind CSS<br><br>Backend: PHP, MySQL, Node.js<br><br>Other: Python, Java, Git & GitHub, Network Installation & Maintenance<br><br><br>🚀 What I’m working on:<br><br>Building real-world projects that combine technical skills with practical problem-solving<br><br>Exploring React Hooks, Node.js best practices, and API integrations<br><br>Learning more about full-stack development & cloud deployment<br><br><br>📫 Let’s Connect:<br><br>📧 Email: surafellaye142@gmail.com<br><br>💼 LinkedIn:https://www.linkedin.com/in/surafel-laye<br><br><br>
+About Me<br><br>Hi, I’m Surafel Laye Betru — a passionate Web Developer and Computer Science graduate from Hawassa University 🇪🇹. I enjoy building modern, responsive, and efficient web applications, exploring new technologies, and solving real-world problems through code.<br><br>
 
 
 ## 🌐 Socials:
